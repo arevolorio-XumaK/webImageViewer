@@ -13,6 +13,7 @@
         write a message: <br />
         <form action="LoadForm" method="POST">
             Message Name: <input type="text" name="msg">
+            File :        <input type="file" name="img">
                           <input type="submit" value="Submit" />
         </form>
     </body>

@@ -4,7 +4,12 @@
  * and open the template in the editor.
  */
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.jcr.*;
 import javax.naming.NamingException;
 import javax.jcr.Repository;
+import javax.servlet.http.Part;
 import org.apache.jackrabbit.commons.JcrUtils;
 
 public class LoadForm extends HttpServlet {
@@ -34,26 +40,37 @@ public class LoadForm extends HttpServlet {
             throws ServletException, IOException, RepositoryException, NamingException {
         
         Repository repository;
-        repository = JcrUtils.getRepository("http://localhost:8080/rmi");///Linea basura!!!!!!!!!!!! aqui muere!!!
+        repository = JcrUtils.getRepository("http://localhost:8080/rmi");
         SimpleCredentials creds = new SimpleCredentials("admin",
             "admin".toCharArray());
         Session jcrSession = repository.login(creds, "default");
-         System.out.println("Login successful, workspace: " + jcrSession.getWorkspace());
-      String message = request.getParameter("msg");
-     
+        System.out.println("Login successful, workspace: " + jcrSession.getWorkspace());
+        String message = request.getParameter("msg");
+        String fromRepo = "CDP";
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        InputStream is = null;
+        OutputStream os = null;
+        Part filePart = request.getPart("img");
+        //String fileName = getFileName(filePart);
       try{
           Node root = jcrSession.getRootNode();
-          root.addNode("Message").setProperty("message", message);
+          //root.addNode("Message").setProperty("message", message);// 
           jcrSession.save();
    
-          
+          Node node = root.getNode("Message");
+          Property nodeProp = node.getProperty("message");
+          fromRepo =nodeProp.getString();
+          //os =  new FileOutputStream(new File(path + File.separator  + fileName));
+          is = request.getInputStream();
+         root.addNode("Images").setProperty("images", is);
+          jcrSession.save();
           
       }finally{
           jcrSession.logout();
           
       }
-      response.setContentType("text/html");
-      PrintWriter out = response.getWriter();
+      
 	  String title = "Uploading to JackRabbit Repo";
       String docType =
       "<!doctype html public \"-//w3c//dtd html 4.0 " +
@@ -66,12 +83,12 @@ public class LoadForm extends HttpServlet {
                 "<ul>\n" +
                 "  <li><b>Message</b>: "
                 + request.getParameter("msg") + "\n" +
-                //"  <li><b>Message from the repo</b>: <li> " +
-                "</li></ul>\n" +
+                "  <li><b>Message from the repo</b>:" + fromRepo
+                + "</li></ul>\n" +
                 "</body></html>");
       out.close();
     }
-
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -120,6 +137,6 @@ public class LoadForm extends HttpServlet {
         return "Short description";
     }// </editor-fold>
     
-   
 
 }
+
