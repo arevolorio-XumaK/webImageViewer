@@ -9,14 +9,11 @@
     </head>
     <body>
         <h1>Hello World!</h1>
-        <h3>File Upload:</h3>
-        Select a file to upload: <br />
-        <form action="LoadForm" method="post"
-                                     enctype="multipart/form-data">
-             <input type="file" name="file" size="50" />
-             <br />
-            <input type="submit" value="Upload File" />
+        <h3>File loader:</h3>
+        write a message: <br />
+        <form action="LoadForm" method="POST">
+            Message Name: <input type="text" name="msg">
+                          <input type="submit" value="Submit" />
         </form>
-        <img src="homer.jpg">
     </body>
 </html>

@@ -6,44 +6,70 @@
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.jcr.*;
+import javax.naming.NamingException;
+import javax.jcr.Repository;
+import org.apache.jackrabbit.commons.JcrUtils;
 
-/**
- *
- * @author xumakgt6
- */
 public class LoadForm extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
+     * @param request 
+     * @param response 
+     * @throws ServletException if a -specific error occurs
      * @throws IOException if an I/O error occurs
+     * @throws javax.jcr.RepositoryException
+     * @throws javax.naming.NamingException
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        try {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Si funciono la llamada al servlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet path " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        } finally {
-            out.close();
-        }
+            throws ServletException, IOException, RepositoryException, NamingException {
+        
+        Repository repository;
+        repository = JcrUtils.getRepository("http://localhost:8080/rmi");///Linea basura!!!!!!!!!!!! aqui muere!!!
+        SimpleCredentials creds = new SimpleCredentials("admin",
+            "admin".toCharArray());
+        Session jcrSession = repository.login(creds, "default");
+         System.out.println("Login successful, workspace: " + jcrSession.getWorkspace());
+      String message = request.getParameter("msg");
+     
+      try{
+          Node root = jcrSession.getRootNode();
+          root.addNode("Message").setProperty("message", message);
+          jcrSession.save();
+   
+          
+          
+      }finally{
+          jcrSession.logout();
+          
+      }
+      response.setContentType("text/html");
+      PrintWriter out = response.getWriter();
+	  String title = "Uploading to JackRabbit Repo";
+      String docType =
+      "<!doctype html public \"-//w3c//dtd html 4.0 " +
+      "transitional//en\">\n";
+      out.println(docType +
+                "<html>\n" +
+                "<head><title>" + title + "</title></head>\n" +
+                "<body bgcolor=\"#f0f0f0\">\n" +
+                "<h1 align=\"center\">" + title + "</h1>\n" +
+                "<ul>\n" +
+                "  <li><b>Message</b>: "
+                + request.getParameter("msg") + "\n" +
+                //"  <li><b>Message from the repo</b>: <li> " +
+                "</li></ul>\n" +
+                "</body></html>");
+      out.close();
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -57,8 +83,9 @@ public class LoadForm extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    { 
+            
+        
     }
 
     /**
@@ -68,11 +95,19 @@ public class LoadForm extends HttpServlet {
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
+     * @throws javax.jcr.RepositoryException
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+        try { 
+            processRequest(request, response);
+        } catch (RepositoryException ex) {
+            Logger.getLogger(LoadForm.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NamingException ex) {
+            Logger.getLogger(LoadForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+     
+       
     }
 
     /**
@@ -84,5 +119,7 @@ public class LoadForm extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+    
+   
 
 }
